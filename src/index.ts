@@ -27,7 +27,7 @@ docker.info().then((info: any): void => {
 const app: Application = express();
 app.use(express.json({}));
 
-app.post('/', (req: Request, res: Response): void => {
+app.post('/', async (req: Request, res: Response): Promise<void> => {
   if (req.body.action !== 'published') {
     res.status(400).send('IGNORING_INVALID_ACTION');
     return;
@@ -43,22 +43,34 @@ app.post('/', (req: Request, res: Response): void => {
     res.status(400).send('INVALID_SIGNATURE');
     return;
   }
-  envs.forEach((packageUrl: string, id: string): void => {
-    if (reqPackageUrl === packageUrl) {
-      const service: Service = docker.service.get(id);
+  const services: Array<string> = [];
+  console.log(reqPackageUrl);
+  // eslint-disable-next-line no-restricted-syntax
+  for await (const element of envs) {
+    console.log(element);
+    if (reqPackageUrl === element[1]) {
       // eslint-disable-next-line no-console
-      console.info(`received valid webhook. updating service ${id} with image ${packageUrl}`);
-      service.update()
-        .then((): void => {
-          res.status(200).send('OK');
-        })
-        .catch((): void => {
-          res.status(500).send('ERROR_UPDATING_SERVICE');
-        });
-    } else {
-      res.status(400).send('INVALID_SERVICE');
+      console.info(`received valid webhook. updating service ${element[0]} with image ${element[1]}`);
+      services.push(element[0]);
     }
-  });
+  }
+  if (services.length === 0) {
+    res.status(400).send('NO_SERVICE_FOUND_FOR_PACKAGE_URL');
+    return;
+  }
+  // eslint-disable-next-line no-restricted-syntax
+  for await (const id of services) {
+    const service: Service = docker.service.get(id);
+    try {
+      await service.update();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('ERROR_UPDATING_SERVICE');
+      res.status(500).send('ERROR_UPDATING_SERVICE');
+      return;
+    }
+  }
+  res.status(200).send('OK');
 });
 
 app.listen(process.env.PORT || 3000, (): void => {
