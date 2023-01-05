@@ -1,0 +1,32 @@
+version: "3.6"
+
+services:
+  voice:
+    image: "ghcr.io/itmr-dev/ghcr-swarm-hook:latest"
+    deploy:
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=3000"
+        - "traefik.docker.network=proxy_net"
+        - "traefik.http.routers.ghcr_swarm_hook.rule=Host(`hooks.itmr.dev`)"
+        - "traefik.http.services.ghcr_swarm_hook.loadbalancer.server.port=3000"
+        - "traefik.http.services.ghcr_swarm_hook.loadbalancer.server.scheme=http"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PORT=${PORT}
+      - SECRET=${SECRET}
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true
+    driver: overlay
+    driver_opts:
+      encryped: "true"
