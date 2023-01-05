@@ -61,10 +61,17 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
   }
   // eslint-disable-next-line no-restricted-syntax
   for await (const id of services) {
-    const service: Service = docker.service.get(id);
+    const service: Service = docker.getService(id);
     console.log(service);
     try {
-      await service.update();
+      service.inspect().then((resD: any): void => {
+        console.log(resD);
+        service.update({
+          TaskTemplate: {
+            ForceUpdate: 1,
+          },
+        });
+      });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('ERROR_UPDATING_SERVICE');
