@@ -32,8 +32,8 @@ app.post('/', (req: Request, res: Response): void => {
     res.status(400).send('IGNORING_INVALID_ACTION');
     return;
   }
-  const packageUrl: string = req.body.package.package_version.package_url;
-  if (!packageUrl) {
+  const reqPackageUrl: string = req.body.package.package_version.package_url;
+  if (!reqPackageUrl) {
     res.status(400).send('INVALID_PAYLOAD_MISSING_PACKAGE_URL');
     return;
   }
@@ -43,15 +43,19 @@ app.post('/', (req: Request, res: Response): void => {
     res.status(400).send('INVALID_SIGNATURE');
     return;
   }
-  envs.forEach((_: string, id: string): void => {
-    const service: Service = docker.service.get(id);
-    service.update()
-      .then((): void => {
-        res.status(200).send('OK');
-      })
-      .catch((): void => {
-        res.status(400).send('INVALID_SERVICE');
-      });
+  envs.forEach((packageUrl: string, id: string): void => {
+    if (reqPackageUrl === packageUrl) {
+      const service: Service = docker.service.get(id);
+      service.update()
+        .then((): void => {
+          res.status(200).send('OK');
+        })
+        .catch((): void => {
+          res.status(500).send('ERROR_UPDATING_SERVICE');
+        });
+    } else {
+      res.status(400).send('INVALID_SERVICE');
+    }
   });
 });
 
