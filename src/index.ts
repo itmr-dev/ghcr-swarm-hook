@@ -46,6 +46,8 @@ app.post('/', (req: Request, res: Response): void => {
   envs.forEach((packageUrl: string, id: string): void => {
     if (reqPackageUrl === packageUrl) {
       const service: Service = docker.service.get(id);
+      // eslint-disable-next-line no-console
+      console.info(`received valid webhook. updating service ${id} with image ${packageUrl}`);
       service.update()
         .then((): void => {
           res.status(200).send('OK');

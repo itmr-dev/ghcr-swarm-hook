@@ -1,6 +1,6 @@
 {
     "name": "ghcr-swarm-hook",
-    "version": "0.0.0",
+    "version": "0.0.2",
     "description": "",
     "author": "Marc Rufeis",
     "license": "ISC",
