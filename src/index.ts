@@ -17,6 +17,7 @@ Object.keys(process.env).forEach((env: string): void => {
     envs.set(env.slice(4), process.env[env] as string);
   }
 });
+console.log(envs);
 
 const docker: Docker = new Docker({ socketPath: '/var/run/docker.sock' });
 docker.info().then((info: any): void => {
@@ -47,7 +48,7 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
   console.log(reqPackageUrl);
   // eslint-disable-next-line no-restricted-syntax
   for await (const element of envs) {
-    console.log(element);
+    console.log(element[1], element[0]);
     if (reqPackageUrl === element[1]) {
       // eslint-disable-next-line no-console
       console.info(`received valid webhook. updating service ${element[0]} with image ${element[1]}`);
@@ -61,6 +62,7 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
   // eslint-disable-next-line no-restricted-syntax
   for await (const id of services) {
     const service: Service = docker.service.get(id);
+    console.log(service);
     try {
       await service.update();
     } catch (error) {
