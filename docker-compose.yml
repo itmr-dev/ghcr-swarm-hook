@@ -1,7 +1,7 @@
 version: "3.6"
 
 services:
-  voice:
+  hooks:
     image: "ghcr.io/itmr-dev/ghcr-swarm-hook:latest"
     deploy:
       replicas: 1
