@@ -1,8 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import { createHmac, Hmac } from 'crypto';
 import dotenv from 'dotenv';
-import { Docker } from 'node-docker-api';
-import type { Service } from 'node-docker-api/lib/service';
+import Docker, { Service } from 'dockerode';
 
 dotenv.config();
 
