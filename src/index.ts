@@ -66,14 +66,20 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
       service.inspect().then((resD: any): void => {
         console.log(resD);
         service.update({
+          version: resD.Version.Index,
+          name: resD.Spec.Name,
           TaskTemplate: {
-            ForceUpdate: 1,
+            ContainerSpec: {
+              Image: 'ghcr.io/letoapp/voice:latest',
+            },
+            // ForceUpdate: resD.Version.Index + 1,
           },
         });
       });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('ERROR_UPDATING_SERVICE');
+      console.log(error);
       res.status(500).send('ERROR_UPDATING_SERVICE');
       return;
     }
