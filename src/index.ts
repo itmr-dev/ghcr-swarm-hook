@@ -63,19 +63,19 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
     const service: Service = docker.getService(id);
     console.log(service);
     try {
-      service.inspect().then((resD: any): void => {
-        console.log(resD);
-        service.update({
-          version: resD.Version.Index,
-          name: resD.Spec.Name,
-          TaskTemplate: {
-            ContainerSpec: {
-              Image: 'ghcr.io/letoapp/voice:latest',
+      service.inspect()
+        .then((inspected: any): void => {
+          console.log(inspected);
+          service.update({
+            ...inspected.Spec,
+            version: inspected.Version.Index,
+            TaskTemplate: {
+              ContainerSpec: {
+                Image: reqPackageUrl,
+              },
             },
-            // ForceUpdate: resD.Version.Index + 1,
-          },
+          });
         });
-      });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('ERROR_UPDATING_SERVICE');
