@@ -16,7 +16,6 @@ Object.keys(process.env).forEach((env: string): void => {
     envs.set(env.slice(4), process.env[env] as string);
   }
 });
-console.log(envs);
 
 const docker: Docker = new Docker({ socketPath: '/var/run/docker.sock' });
 docker.info().then((info: any): void => {
@@ -44,10 +43,8 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
     return;
   }
   const services: Array<string> = [];
-  console.log(reqPackageUrl);
   // eslint-disable-next-line no-restricted-syntax
   for await (const element of envs) {
-    console.log(element[1], element[0]);
     if (reqPackageUrl === element[1]) {
       // eslint-disable-next-line no-console
       console.info(`received valid webhook. updating service ${element[0]} with image ${element[1]}`);
@@ -55,17 +52,17 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
     }
   }
   if (services.length === 0) {
+    // eslint-disable-next-line no-console
+    console.info(`invalid webhook. no service found for package ${reqPackageUrl}`);
     res.status(400).send('NO_SERVICE_FOUND_FOR_PACKAGE_URL');
     return;
   }
   // eslint-disable-next-line no-restricted-syntax
   for await (const id of services) {
     const service: Service = docker.getService(id);
-    console.log(service);
     try {
       service.inspect()
         .then((inspected: any): void => {
-          console.log(inspected);
           service.update({
             ...inspected.Spec,
             version: inspected.Version.Index,
@@ -78,8 +75,7 @@ app.post('/', async (req: Request, res: Response): Promise<void> => {
         });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn('ERROR_UPDATING_SERVICE');
-      console.log(error);
+      console.warn('ERROR_UPDATING_SERVICE', error);
       res.status(500).send('ERROR_UPDATING_SERVICE');
       return;
     }
